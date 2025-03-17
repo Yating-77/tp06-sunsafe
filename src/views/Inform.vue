@@ -2,14 +2,29 @@
   <div class="container text-center">
     <h2 class="mb-3">Check the Ultraviolet (UV) Index According to Suburb</h2>
 
-    <!-- Search Bar -->
-    <div class="input-group mb-3">
-      <input v-model="suburb" class="form-control" placeholder="Enter suburb">
-      <button @click="fetchUVIndex" class="btn btn-primary">Search</button>
+    <!-- Search Bar with Autocomplete -->
+    <div class="search-container">
+      <input 
+        v-model="suburb" 
+        @input="fetchSuggestions"
+        @keydown.enter="fetchUVIndex"
+        class="form-control search-input" 
+        placeholder="Enter suburb"
+      >
+      <!-- Autocomplete Suggestions -->
+      <ul v-if="suggestions.length" class="autocomplete-list">
+        <li v-for="(suggestion, index) in suggestions" 
+            :key="index" 
+            @click="selectSuburb(suggestion)"
+            class="autocomplete-item">
+          {{ suggestion }}
+        </li>
+      </ul>
+      <button @click="fetchUVIndex" class="btn btn-primary search-button">Search</button>
     </div>
 
-    <!-- Loading Indicator -->
-    <div v-if="loading" class="alert alert-info">Loading...</div>
+    <!-- Error Message -->
+    <div v-if="errorMessage" class="alert alert-danger mt-2">{{ errorMessage }}</div>
 
     <!-- Display UV Index Results -->
     <div v-if="uvIndex !== null" class="alert alert-success">
@@ -32,49 +47,32 @@
       </div>
     </div>
 
-    <!-- Skin Cancer Risk -->
-    <h4 class="mt-4">Historical Skin Cancer Trends (1982 - 2019)</h4>
-    <canvas ref="cancerTrendChart"></canvas>
+    <!-- Loading Indicator -->
+    <div v-if="loading" class="alert alert-info">Loading...</div>
 
-    <!-- Heat Trend in Australia -->
-    <h4 class="mt-4">Historical Climate Trends in Australia</h4>
-    <p>While Australia's average temperature has fluctuated in recent years, the median UV index has remained relatively stable, reflecting the complex interaction between climate factors and solar radiation exposure.</p>
-
+  </div>
+  <div class="chart-container">
+    <!-- UV Index Trends -->
+    <h4 class="chart-title">Historical Climate Trends in Australia</h4>
+    <p class="chart-description">
+      This chart shows the yearly changes in the median UV Index across Australia.
+      A higher UV Index indicates stronger ultraviolet radiation, which increases the risk of sunburn and skin damage.
+    </p>
     <canvas ref="heatTrendChart"></canvas>
-    <p>From 2018 to 2023, Australia's average temperature exhibited fluctuations, peaking in 2019 before experiencing a decline and slight recovery in 2023. The median UV index also saw minor variations but remained within a narrow range, indicating that UV exposure risks persist despite temperature changes. Continuous monitoring and sun safety precautions are essential, regardless of yearly fluctuations in climate conditions.</p>
-    <!-- Skin Tone Selector -->
-    <div v-if="uvIndex !== null" class="skin-tone mt-4">
-      <h4>Now that you understand the risks, let's personalise your sun protection advice according to the UV level you searched. Select your skin tone below:</h4>
-      <div class="skin-tone-scale">
-        <!-- 色板 -->
-        <div v-for="(color, index) in skinToneColors" 
-            :key="index" 
-            class="skin-tone-block" 
-            :style="{ backgroundColor: color }">
-        </div>
 
-        <!-- 滑块 -->
-        <input type="range" min="1" max="3" step="0.01" v-model="skinTone" class="skin-tone-slider">
-      </div>
-
-      <div class="skin-tone-labels">
-        <span :class="{ active: skinTone < 1.5 }">Light</span>
-        <span :class="{ active: skinTone >= 1.5 && skinTone <= 2.5 }">Medium</span>
-        <span :class="{ active: skinTone > 2.5 }">Dark</span>
-      </div>
-    </div>
-
+    <!-- Skin Cancer Trends -->
+    <h4 class="chart-title">Skin Cancer Data</h4>
+    <p class="chart-description">
+      This chart illustrates the increasing incidence and mortality rates of skin cancer per 100,000 people.
+      A rising trend in the incidence rate suggests the growing importance of sun protection measures.
+    </p>
+    <canvas ref="skinCancerChart"></canvas>
+  </div> 
     <!-- Sun Safety Recommendations -->
-    <div v-if="uvIndex !== null" class="recommendations mt-4">
-      <h4>Sun Safety Recommendations</h4>
-      <p><strong>Clothing:</strong> {{ clothingRecommendation }}</p>
-      <p><strong>Sun Protection:</strong> {{ sunProtectionRecommendation }}</p>
-      <p><strong>Best Time to Go Outside:</strong> {{ sunExposureRecommendation }}</p>
-    </div>
+    <Recommendation :uvIndex="uvIndex" />
 
     <!-- Error Message -->
     <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
-  </div>
 </template>
 
 <script setup>
@@ -89,44 +87,100 @@ const locationName = ref('');
 const loading = ref(false);
 const errorMessage = ref('');
 const skinTone = ref(2);
-
-const cancerTrendChart = ref(null);
+const suggestions = ref([]);
+const skinCancerChart = ref(null);
 const heatTrendChart = ref(null);
-const chartCancerInstance = ref(null);
-const chartHeatInstance = ref(null);
-
+const chartInstanceSkinCancer = ref(null);
+const chartInstanceHeatTrend = ref(null);
+const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiaXJpczAwNzc5OSIsImEiOiJjbTFyZmhqMXYwYTRxMmtxMjFzYTlmYWN2In0.lVDdt8jKxfx9nJqXHgQU6w';
+const API_URL = 'http://localhost:3000';
 const GEOCODE_API_KEY = 'de3ca6f233e241b4960da73919f0bf55';
 const WEATHER_API_KEY = '4300747fbdce7480245f3c9e02b943df';
+import Recommendation from './Recommendation.vue'; // ✅ 引入 recommendation 组件
 
-// Fetch UV Index
+// ✅ 输入校验（防止输入无效字符）
+const validateInput = () => {
+  const regex = /^[a-zA-Z\s]+$/;  // 仅允许字母和空格
+  if (!regex.test(suburb.value)) {
+    errorMessage.value = 'Invalid suburb name. Please enter a valid name.';
+    return false;
+  }
+  errorMessage.value = '';
+  return true;
+};
+
+// ✅ 使用 Mapbox API 获取地址建议
+const fetchSuggestions = async () => {
+  if (suburb.value.length < 3) {
+    suggestions.value = [];
+    return;
+  }
+
+  if (!validateInput()) return;  // 检查输入是否合法
+
+  try {
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${suburb.value}.json?autocomplete=true&country=AU&types=place,locality,neighborhood&access_token=${MAPBOX_ACCESS_TOKEN}`
+    );
+    const data = await response.json();
+
+    if (data.features && data.features.length > 0) {
+      suggestions.value = data.features.map(feature => feature.place_name);
+    } else {
+      suggestions.value = [];
+    }
+  } catch (error) {
+    console.error("Error fetching suburb suggestions:", error);
+  }
+};
+
+// ✅ 选择建议地址
+const selectSuburb = (selected) => {
+  suburb.value = selected;
+  suggestions.value = []; // 选中后隐藏列表
+};
+
+// ✅ 修正 fetchUVIndex 确保 `Clayton, Victoria, Australia` 可用
 const fetchUVIndex = async () => {
   if (!suburb.value.trim()) {
     errorMessage.value = 'Please enter a valid suburb.';
     return;
   }
 
-  loading.value = true;
-  errorMessage.value = '';
-  uvIndex.value = null;
-  latitude.value = null;
-  longitude.value = null;
-  locationName.value = '';
-
   try {
-    // Step 1: Convert Suburb to Coordinates
-    const geoUrl = `https://api.opencagedata.com/geocode/v1/json?q=${suburb.value},Australia&key=${GEOCODE_API_KEY}`;
+    // **使用 Mapbox API 获取坐标**
+    const geoUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(suburb.value)}.json?country=AU&access_token=${MAPBOX_ACCESS_TOKEN}`;
     const geoResponse = await fetch(geoUrl);
     const geoData = await geoResponse.json();
 
-    if (!geoData.results || geoData.results.length === 0) {
+    if (!geoData.features || geoData.features.length === 0) {
       throw new Error('Suburb not found. Please enter a valid suburb.');
     }
 
-    latitude.value = geoData.results[0].geometry.lat;
-    longitude.value = geoData.results[0].geometry.lng;
-    locationName.value = geoData.results[0].formatted;
+    // ✅ 提取坐标
+    latitude.value = geoData.features[0].center[1];
+    longitude.value = geoData.features[0].center[0];
 
-    // Step 2: Fetch UV Index using Coordinates
+    // ✅ 解析 suburb, state, postcode
+    const placeData = geoData.features[0].context;
+    
+    // 🚀 **确保优先获取 suburb（locality/neighborhood），然后才是 city**
+    const suburbName = placeData.find(d => d.id.includes("locality"))?.text ||
+                       placeData.find(d => d.id.includes("neighborhood"))?.text ||
+                       placeData.find(d => d.id.includes("place"))?.text ||
+                       geoData.features[0].text || '';
+
+    const state = placeData.find(d => d.id.includes("region"))?.text || '';
+    const postcode = placeData.find(d => d.id.includes("postcode"))?.text || '';
+
+    // ✅ **确保 locationName 不是空**
+    locationName.value = `${suburbName}${state ? ', ' + state : ''}${postcode ? ', ' + postcode : ''}, Australia`.trim();
+
+    if (!latitude.value || !longitude.value) {
+      throw new Error("Failed to get coordinates. Please enter a valid suburb.");
+    }
+
+    // **获取 UV Index**
     const weatherUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${latitude.value}&lon=${longitude.value}&appid=${WEATHER_API_KEY}`;
     const weatherResponse = await fetch(weatherUrl);
     const weatherData = await weatherResponse.json();
@@ -139,8 +193,6 @@ const fetchUVIndex = async () => {
   } catch (error) {
     errorMessage.value = error.message;
   }
-
-  loading.value = false;
 };
 
 // UV Levels Data
@@ -152,126 +204,150 @@ const uvLevels = ref([
   { label: "Extreme", class: "extreme", min: 10.5, max: 16 },
 ]);
 
-// 渲染 Chart.js 图表
-const renderCharts = async () => {
-  await nextTick();
+// 📌 存储数据
+const skinCancerData = ref([]);
+const heatTrendData = ref([]);
 
-  if (cancerTrendChart.value) {
-    if (chartCancerInstance.value) chartCancerInstance.value.destroy();
-    chartCancerInstance.value = new Chart(cancerTrendChart.value.getContext('2d'), {
+// 📌 获取数据的函数
+const fetchSkinCancerData = async () => {
+  try {
+    const response = await fetch(`${API_URL}/skincancerdata`);
+    const data = await response.json();
+    skinCancerData.value = data;
+    renderSkinCancerChart();
+  } catch (error) {
+    console.error("Error fetching skin cancer data:", error);
+  }
+};
+
+// 📌 渲染 Skin Cancer Chart
+const renderSkinCancerChart = async () => {
+  await nextTick();
+  if (skinCancerChart.value) {
+    if (chartInstanceSkinCancer.value) chartInstanceSkinCancer.value.destroy();
+    chartInstanceSkinCancer.value = new Chart(skinCancerChart.value.getContext('2d'), {
       type: 'line',
       data: {
-        labels: ["1982", "1990", "2000", "2010", "2019"],
+        labels: skinCancerData.value.map(d => d.year),
+        datasets: [
+          {
+            label: "Incidence Rate (per 100,000)",
+            data: skinCancerData.value.map(d => d.incidence_rate),
+            borderColor: '#FF5733',
+            backgroundColor: 'rgba(255, 87, 51, 0.2)',
+            fill: true
+          },
+          {
+            label: "Mortality Rate (per 100,000)",
+            data: skinCancerData.value.map(d => d.mortality_rate),
+            borderColor: '#1E90FF',
+            backgroundColor: 'rgba(30, 144, 255, 0.2)',
+            fill: false
+          }
+        ]
+      }
+    });
+  }
+};
+
+// 📌 获取 UV 历史数据
+const fetchHeatTrendData = async () => {
+  try {
+    const response = await fetch(`${API_URL}/uvhistory`);
+    const data = await response.json();
+    heatTrendData.value = data;
+    renderHeatTrendChart();
+  } catch (error) {
+    console.error("Error fetching UV history:", error);
+  }
+};
+
+// 📌 渲染 UV Heat Trend Chart
+const renderHeatTrendChart = async () => {
+  await nextTick();
+  if (heatTrendChart.value) {
+    if (chartInstanceHeatTrend.value) chartInstanceHeatTrend.value.destroy();
+    chartInstanceHeatTrend.value = new Chart(heatTrendChart.value.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: heatTrendData.value.map(d => d.year),
         datasets: [{
-          label: "Melanoma Incidence per 100,000 People",
-          data: [30, 45, 55, 65, 75],
-          borderColor: '#F44336',
-          backgroundColor: 'rgba(244, 67, 54, 0.2)',
+          label: "Median UV Index",
+          data: heatTrendData.value.map(d => d.median_uvi),
+          borderColor: '#FFA500',
+          backgroundColor: 'rgba(255, 165, 0, 0.2)',
           fill: true
         }]
       }
     });
   }
-
-  if (heatTrendChart.value) {
-    if (chartHeatInstance.value) chartHeatInstance.value.destroy();
-    chartHeatInstance.value = new Chart(heatTrendChart.value.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: ["2018", "2019", "2020", "2021", "2022", "2023"],
-        datasets: [
-          {
-            label: "Average Temperature in Australia (°C)",
-            data: [22.49, 22.78, 22.56, 22.05, 21.96, 22.36],
-            borderColor: '#FF9800',
-            backgroundColor: 'rgba(255, 152, 0, 0.2)',
-            yAxisID: 'y-axis-temp',
-            fill: true
-          },
-          {
-            label: "Median UV Index",
-            data: [1.41, 1.56, 1.49, 1.45, 1.39, 1.48], 
-            borderColor: '#0080FF',
-            backgroundColor: 'rgba(0, 128, 255, 0.2)',
-            yAxisID: 'y-axis-uv',
-            fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          'y-axis-temp': {
-            type: 'linear',
-            position: 'left',
-            title: {
-              display: true,
-              text: 'Temperature (°C)'
-            }
-          },
-          'y-axis-uv': {
-            type: 'linear',
-            position: 'right',
-            title: {
-              display: true,
-              text: 'Median UV Index'
-            }
-          }
-        }
-      }
-    });
-  }
-
 };
 // Skin Tone Colors
 const skinToneColors = ref(["#FAF0E6", "#F4C7A1", "#C08A60", "#8B5A2B", "#5D3A00"]);
-// 计算防晒建议
-const clothingRecommendation = computed(() => {
-  if (uvIndex.value === null) return "No data available";
-  return uvIndex.value >= 7 ? "Wear long sleeves, pants, and a hat" : "Use light, breathable clothing";
+// 📌 计算防晒建议
+const clothingRecommendation = computed(() => uvIndex.value >= 7 ? "Wear long sleeves, pants, and a hat" : "Use light, breathable clothing");
+const sunProtectionRecommendation = computed(() => skinTone.value < 1.5 ? "Use SPF 50+" : skinTone.value > 2.5 ? "Use SPF 15+" : "Use SPF 30+");
+const sunExposureRecommendation = computed(() => uvIndex.value >= 8 ? "Avoid midday sun" : "Morning and evening are safer");
+
+// 📌 在页面加载时获取数据
+onMounted(() => {
+  fetchSkinCancerData();
+  fetchHeatTrendData();
 });
-
-const sunProtectionRecommendation = computed(() => {
-  if (uvIndex.value === null) return "No data available";
-
-  if (skinTone.value < 1.5) return uvIndex.value >= 6 ? "Use SPF 50+" : "Use SPF 30+";
-  if (skinTone.value >= 1.5 && skinTone.value <= 2.5) return uvIndex.value >= 6 ? "Use SPF 30+" : "Use SPF 15+";
-  return uvIndex.value >= 6 ? "Use SPF 15+" : "Minimal sunscreen needed";
-});
-const isDragging = ref(false);
-
-const startDragging = (event) => {
-  isDragging.value = true;
-  updateSkinTone(event);
-};
-
-const dragging = (event) => {
-  if (isDragging.value) {
-    updateSkinTone(event);
-  }
-};
-
-const stopDragging = () => {
-  isDragging.value = false;
-};
-
-const updateSkinTone = (event) => {
-  const rect = event.currentTarget.getBoundingClientRect();
-  const offsetX = event.clientX - rect.left;
-  const percentage = offsetX / rect.width;
-  skinTone.value = 1 + percentage * 2; // 1 ~ 3 范围
-};
-
-
-const sunExposureRecommendation = computed(() => {
-  if (uvIndex.value === null) return "No data available";
-  return uvIndex.value >= 8 ? "Best to stay indoors during midday" : "Safe to go outside in the morning or late afternoon";
-});
-
-onMounted(renderCharts);
 </script>
 
+
 <style scoped>
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.search-button {
+  margin-left: 10px;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.autocomplete-item {
+  padding: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.autocomplete-item:hover {
+  background: #f0f0f0;
+}
+
 .uv-scale {
   display: flex;
   height: 50px;
@@ -347,5 +423,8 @@ onMounted(renderCharts);
   padding: 0 10px;
   font-weight: bold;
 }
-
+/* ✅ 减少搜索框和结果的间距 */
+.alert-success {
+  margin-top: 10px;
+}
 </style>
