@@ -84,7 +84,7 @@ export default {
   const skinToneText = this.skinTone < 1.5 ? "Light" : this.skinTone > 2.5 ? "Dark" : "Medium";
 
   try {
-    const response = await axios.get('http://54.252.182.12:3000/api/recommendation', {
+    const response = await axios.get('http://sunsafe.mooo.com/api/recommendation', {
       params: { skinTone: skinToneText, uvIndex: this.uvIndex }
     });
     this.recommendation = response.data;
