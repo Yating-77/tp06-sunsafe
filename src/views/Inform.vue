@@ -93,7 +93,7 @@ const heatTrendChart = ref(null);
 const chartInstanceSkinCancer = ref(null);
 const chartInstanceHeatTrend = ref(null);
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiaXJpczAwNzc5OSIsImEiOiJjbTFyZmhqMXYwYTRxMmtxMjFzYTlmYWN2In0.lVDdt8jKxfx9nJqXHgQU6w';
-const API_URL = 'http://localhost:3000';
+const API_URL = 'http://54.252.182.12:3000';
 const GEOCODE_API_KEY = 'de3ca6f233e241b4960da73919f0bf55';
 const WEATHER_API_KEY = '4300747fbdce7480245f3c9e02b943df';
 import Recommendation from './Recommendation.vue'; // ✅ 引入 recommendation 组件
