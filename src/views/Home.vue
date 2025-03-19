@@ -333,7 +333,7 @@ canvas {
 }
 
 .container-1 {
-  background-image: url("/pic4.jpg");
+  background-image: url("/homeimage.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
