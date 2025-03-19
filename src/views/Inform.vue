@@ -1,6 +1,13 @@
 <template>
   <div class="container text-center">
-    <h2 class="mb-3">Check the Ultraviolet (UV) Index According to Suburb</h2>
+    <div class="uv-container">
+    <div class="uv-background"></div>
+
+    <div class="uv-content text-center">
+      <h1 class="mt-1">Check the Ultraviolet (UV) Index</h1>
+      <p class="mt-5">
+        Get real-time UV index data based on the <span class="highlight-text">entered suburb name in Australia</span>, along with sun protection recommendations to keep your skin safe.
+      </p>
 
     <!-- Search Bar with Autocomplete -->
     <div class="search-container">
@@ -9,7 +16,7 @@
         @input="fetchSuggestions"
         @keydown.enter="fetchUVIndex"
         class="form-control search-input" 
-        placeholder="Enter suburb"
+        placeholder="Enter suburb name"
       >
       <!-- Autocomplete Suggestions -->
       <ul v-if="suggestions.length" class="autocomplete-list">
@@ -20,7 +27,7 @@
           {{ suggestion }}
         </li>
       </ul>
-      <button @click="fetchUVIndex" class="btn btn-primary search-button">Search</button>
+      <button @click="fetchUVIndex" class="btn search-button">Search</button>
     </div>
 
     <!-- Error Message -->
@@ -46,39 +53,121 @@
         </div>
       </div>
     </div>
-
+  </div>
+</div>
     <!-- Loading Indicator -->
     <div v-if="loading" class="alert alert-info">Loading...</div>
 
+<div v-if="uvIndex !== null">
+  <h2 class="mt-5">Generate Personalised Recommendation</h2>
+
+  <div class="skin-tone-container mt-4">
+    <label>Select your skin tone:</label>
+    <div class="skin-tone-scale-container">
+      <input type="range" min="1" max="3" step="0.01" v-model="skinTone" class="skin-tone-slider">
+      <div class="skin-tone-labels">
+        <span>Light</span>
+        <span>Medium</span>
+        <span>Dark</span>
+      </div>
+    </div>
   </div>
-  <div class="chart-container">
-    <!-- UV Index Trends -->
-    <h4 class="chart-title">Historical Climate Trends in Australia</h4>
-    <p class="chart-description">
-      This chart shows the yearly changes in the median UV Index across Australia.
-      A higher UV Index indicates stronger ultraviolet radiation, which increases the risk of sunburn and skin damage.
-    </p>
-    <canvas ref="heatTrendChart"></canvas>
 
-    <!-- Skin Cancer Trends -->
-    <h4 class="chart-title">Skin Cancer Data</h4>
-    <p class="chart-description">
-      This chart illustrates the increasing incidence and mortality rates of skin cancer per 100,000 people.
-      A rising trend in the incidence rate suggests the growing importance of sun protection measures.
-    </p>
-    <canvas ref="skinCancerChart"></canvas>
-  </div> 
-    <!-- Sun Safety Recommendations -->
-    <Recommendation :uvIndex="uvIndex" />
+  <button @click="generateRecommendation" class="btn orange-button">Get Recommendation</button>
 
-    <!-- Error Message -->
-    <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div v-if="recommendationError" class="alert alert-danger mt-3">{{ recommendationError }}</div>
+  <p v-if="recommendationMessage" class="alert alert-info">{{ recommendationMessage }}</p>
+
+  <div v-if="showRecommendations" class="mt-4">
+  <h2 class="recommendation-title">Personalised Sun Protection Advice</h2>
+  <div class="recommendation-cards">
+    
+    <!--  Clothing Recommendation -->
+    <div class="card">
+      <h3>Clothing</h3>
+      <img v-if="clothingImage" :src="clothingImage" alt="Clothing Recommendation" class="recommendation-image">
+      <p class="recommendation-text">{{ clothingRecommendation }}</p>
+    </div>
+
+    <!-- Hat Recommendation -->
+    <div class="card">
+      <h3>Hat</h3>
+      <img v-if="hatImage" :src="hatImage" alt="Hat Recommendation" class="recommendation-image">
+      <p class="recommendation-text">{{ hatRecommendation }}</p>
+    </div>
+
+    <!--  Sunglasses Recommendation -->
+    <div class="card">
+      <h3>Sunglasses</h3>
+      <img v-if="sunglassesImage" :src="sunglassesImage" alt="Sunglasses Recommendation" class="recommendation-image">
+      <p class="recommendation-text">{{ sunglassesRecommendation }}</p>
+    </div>
+  </div>
+</div>
+
+  <div v-if="showRecommendations" class="reminder-section">
+
+  <div class="reminder-section">
+      <h2>Sunscreen Reapplication Reminder Setting</h2>
+
+      <div class="reminder-row">
+        <label>Select Sunscreen SPF Value:</label>
+        <select v-model.number="spf">
+          <option :value="15">SPF 15</option>
+          <option :value="30">SPF 30</option>
+          <option :value="50">SPF 50</option>
+        </select>
+      </div>
+
+
+      <div class="reminder-row">
+        <label>Select Activity Type:</label>
+        <select v-model="activity">
+          <option value="normal">General Outdoor Activities</option>
+          <option value="swimming">Swimming</option>
+          <option value="exercise">Sports</option>
+          <option value="high_uv">High UV Environment</option>
+        </select>
+      </div>
+
+
+      <div class="reminder-row">
+        <label>Current UV Index:</label>
+        <input type="number" :value="reminderUVIndex" min="0" max="20" readonly />
+
+      </div>
+
+
+      <div class="reminder-row">
+        <button @click="showReapplyTime" class="btn orange-button">Calculate Reapplication Time</button>
+      </div>
+
+      <div v-if="message" class="message">
+        {{ message }}
+      </div>
+
+
+      <div class="reminder-row">
+        <label>Custom Reminder Time (minutes):</label>
+        <input type="number" v-model.number="customReminder" min="1" />
+        <button @click="setCustomReminder" class="btn orange-button">Set Reminder</button>
+      </div>
+
+      <div v-if="reminderSet" class="reminder-message">
+        Reminder Set! You will receive a notification to reapply sunscreen in {{ reminderTime }} minutes.
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+    
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue';
-import Chart from 'chart.js/auto';
-
+import { ref, computed, onUnmounted } from 'vue';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap';
 const suburb = ref('');
 const uvIndex = ref(null);
 const latitude = ref(null);
@@ -88,19 +177,15 @@ const loading = ref(false);
 const errorMessage = ref('');
 const skinTone = ref(2);
 const suggestions = ref([]);
-const skinCancerChart = ref(null);
-const heatTrendChart = ref(null);
-const chartInstanceSkinCancer = ref(null);
-const chartInstanceHeatTrend = ref(null);
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiaXJpczAwNzc5OSIsImEiOiJjbTFyZmhqMXYwYTRxMmtxMjFzYTlmYWN2In0.lVDdt8jKxfx9nJqXHgQU6w';
-const API_URL = 'https://sunsafe.mooo.com';
-const GEOCODE_API_KEY = 'de3ca6f233e241b4960da73919f0bf55';
 const WEATHER_API_KEY = '4300747fbdce7480245f3c9e02b943df';
-import Recommendation from './Recommendation.vue'; // ✅ 引入 recommendation 组件
+const recommendationError = ref('');
+const showRecommendations = ref(false);
+const recommendationMessage = ref("");
+const reminderUVIndex = ref(null);
 
-// ✅ 输入校验（防止输入无效字符）
 const validateInput = () => {
-  const regex = /^[a-zA-Z\s]+$/;  // 仅允许字母和空格
+  const regex = /^[a-zA-Z\s]+$/; 
   if (!regex.test(suburb.value)) {
     errorMessage.value = 'Invalid suburb name. Please enter a valid name.';
     return false;
@@ -109,14 +194,13 @@ const validateInput = () => {
   return true;
 };
 
-// ✅ 使用 Mapbox API 获取地址建议
 const fetchSuggestions = async () => {
   if (suburb.value.length < 3) {
     suggestions.value = [];
     return;
   }
 
-  if (!validateInput()) return;  // 检查输入是否合法
+  if (!validateInput()) return;
 
   try {
     const response = await fetch(
@@ -134,13 +218,11 @@ const fetchSuggestions = async () => {
   }
 };
 
-// ✅ 选择建议地址
 const selectSuburb = (selected) => {
   suburb.value = selected;
-  suggestions.value = []; // 选中后隐藏列表
+  suggestions.value = [];
 };
 
-// ✅ 修正 fetchUVIndex 确保 `Clayton, Victoria, Australia` 可用
 const fetchUVIndex = async () => {
   if (!suburb.value.trim()) {
     errorMessage.value = 'Please enter a valid suburb.';
@@ -148,7 +230,6 @@ const fetchUVIndex = async () => {
   }
 
   try {
-    // **使用 Mapbox API 获取坐标**
     const geoUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(suburb.value)}.json?country=AU&access_token=${MAPBOX_ACCESS_TOKEN}`;
     const geoResponse = await fetch(geoUrl);
     const geoData = await geoResponse.json();
@@ -157,30 +238,24 @@ const fetchUVIndex = async () => {
       throw new Error('Suburb not found. Please enter a valid suburb.');
     }
 
-    // ✅ 提取坐标
-    latitude.value = geoData.features[0].center[1];
-    longitude.value = geoData.features[0].center[0];
+    const feature = geoData.features[0];
+    latitude.value = feature.center[1];
+    longitude.value = feature.center[0];
 
-    // ✅ 解析 suburb, state, postcode
-    const placeData = geoData.features[0].context;
-    
-    // 🚀 **确保优先获取 suburb（locality/neighborhood），然后才是 city**
-    const suburbName = placeData.find(d => d.id.includes("locality"))?.text ||
-                       placeData.find(d => d.id.includes("neighborhood"))?.text ||
-                       placeData.find(d => d.id.includes("place"))?.text ||
-                       geoData.features[0].text || '';
+    const placeData = feature.context;
+    const suburbName = placeData.find(d => d.id.includes("locality"))?.text || 
+                       placeData.find(d => d.id.includes("neighborhood"))?.text || 
+                       feature.text || '';
 
     const state = placeData.find(d => d.id.includes("region"))?.text || '';
     const postcode = placeData.find(d => d.id.includes("postcode"))?.text || '';
 
-    // ✅ **确保 locationName 不是空**
-    locationName.value = `${suburbName}${state ? ', ' + state : ''}${postcode ? ', ' + postcode : ''}, Australia`.trim();
+    locationName.value = `${suburbName}${state ? ', ' + state : ''}${postcode ? ', ' + postcode : ''}, Australia`;
 
     if (!latitude.value || !longitude.value) {
       throw new Error("Failed to get coordinates. Please enter a valid suburb.");
     }
 
-    // **获取 UV Index**
     const weatherUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${latitude.value}&lon=${longitude.value}&appid=${WEATHER_API_KEY}`;
     const weatherResponse = await fetch(weatherUrl);
     const weatherData = await weatherResponse.json();
@@ -195,6 +270,7 @@ const fetchUVIndex = async () => {
   }
 };
 
+
 // UV Levels Data
 const uvLevels = ref([
   { label: "Low", class: "low", min: 0, max: 2.5 },
@@ -204,100 +280,204 @@ const uvLevels = ref([
   { label: "Extreme", class: "extreme", min: 10.5, max: 16 },
 ]);
 
-// 📌 存储数据
-const skinCancerData = ref([]);
-const heatTrendData = ref([]);
 
-// 📌 获取数据的函数
-const fetchSkinCancerData = async () => {
-  try {
-    const response = await fetch(`${API_URL}/skincancerdata`);
-    const data = await response.json();
-    skinCancerData.value = data;
-    renderSkinCancerChart();
-  } catch (error) {
-    console.error("Error fetching skin cancer data:", error);
+const generateRecommendation = () => {
+  if (uvIndex.value === null) {
+    recommendationError.value = "Please check the UV Index first!";
+    return;
+  }
+
+  recommendationMessage.value = `Current UV Index is ${uvIndex.value}.`;
+  
+  reminderUVIndex.value = uvIndex.value; 
+  console.log("Updated Reminder UV Index:", reminderUVIndex.value);
+
+  showRecommendations.value = true;
+  recommendationError.value = "";
+};
+
+
+const clothingRecommendation = computed(() => {
+  if (uvIndex.value < 3) return "Short-sleeve, light-colored loose-fit cotton or linen";
+  if (uvIndex.value < 7) return "Long-sleeve, light-colored breathable shirt & light pants/shorts";
+  return "Long-sleeve, UPF-rated clothing";
+});
+
+
+const clothingImage = computed(() => {
+  if (clothingRecommendation.value === "Short-sleeve, light-colored loose-fit cotton or linen") {
+    return "/short-sleeve.png";
+  } else if (clothingRecommendation.value === "Long-sleeve, light-colored breathable shirt & light pants/shorts") {
+    return "/long-sleeve-light.png";
+  } else {
+    return "/upf-clothing.png";
+  }
+});
+
+
+const hatRecommendation = computed(() => {
+  if (uvIndex.value < 3) return "Visor";
+  if (uvIndex.value < 7) return "Baseball Cap";
+  return "Wide Brimmed Hat";
+});
+
+
+const hatImage = computed(() => {
+  if (hatRecommendation.value === "Visor") {
+    return "/visor.png";
+  } else if (hatRecommendation.value === "Baseball Cap") {
+    return "/baseball-cap.png";
+  } else {
+    return "/wide-brim-hat.png";
+  }
+});
+
+
+const sunglassesRecommendation = computed(() => {
+  if (uvIndex.value < 3) return "No Sunglasses Needed";
+  return "Polarized sunglasses";
+});
+
+
+const sunglassesImage = computed(() => {
+  if (sunglassesRecommendation.value === "Polarized sunglasses") {
+    return "/polarized-sunglasses.png";
+  } else {
+    return ""; // No image for "No Sunglasses Needed"
+  }
+});
+
+const spf = ref(30);  
+const activity = ref("normal"); 
+const message = ref("");
+const customReminder = ref(0);
+const reminderSet = ref(false);
+const reminderTime = ref(0); 
+const reminderTimer = ref(null); 
+
+const calculateReapplyTime = () => {
+  let baseTime = spf.value * 10; 
+
+  if (activity.value === "swimming" || activity.value === "exercise") {
+    baseTime /= 2; 
+  }
+  if (uvIndex.value >= 8) {
+    baseTime *= 0.75;
+  }
+
+  return Math.round(baseTime / 60);
+};
+
+const showReapplyTime = () => {
+  let hours = calculateReapplyTime();
+  message.value = `It is recommended to reapply sunscreen in ${hours} hours.`;
+};
+
+const setCustomReminder = () => {
+  if (reminderTimer.value) {
+    clearTimeout(reminderTimer.value);
+  }
+
+  if (customReminder.value > 0) {
+    reminderTime.value = customReminder.value;
+    reminderSet.value = true;
+
+    reminderTimer.value = setTimeout(() => {
+      alert(`Reminder: Your set time of ${reminderTime.value} minutes is up. Please remember to reapply sunscreen.`);
+      reminderSet.value = false;
+    }, reminderTime.value * 60 * 1000);
+  } else {
+    reminderSet.value = false;
+    alert("Please enter a valid reminder time (minutes)!");
   }
 };
 
-// 📌 渲染 Skin Cancer Chart
-const renderSkinCancerChart = async () => {
-  await nextTick();
-  if (skinCancerChart.value) {
-    if (chartInstanceSkinCancer.value) chartInstanceSkinCancer.value.destroy();
-    chartInstanceSkinCancer.value = new Chart(skinCancerChart.value.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: skinCancerData.value.map(d => d.year),
-        datasets: [
-          {
-            label: "Incidence Rate (per 100,000)",
-            data: skinCancerData.value.map(d => d.incidence_rate),
-            borderColor: '#FF5733',
-            backgroundColor: 'rgba(255, 87, 51, 0.2)',
-            fill: true
-          },
-          {
-            label: "Mortality Rate (per 100,000)",
-            data: skinCancerData.value.map(d => d.mortality_rate),
-            borderColor: '#1E90FF',
-            backgroundColor: 'rgba(30, 144, 255, 0.2)',
-            fill: false
-          }
-        ]
-      }
-    });
+onUnmounted(() => {
+  if (reminderTimer.value) {
+    clearTimeout(reminderTimer.value);
   }
-};
-
-// 📌 获取 UV 历史数据
-const fetchHeatTrendData = async () => {
-  try {
-    const response = await fetch(`${API_URL}/uvhistory`);
-    const data = await response.json();
-    heatTrendData.value = data;
-    renderHeatTrendChart();
-  } catch (error) {
-    console.error("Error fetching UV history:", error);
-  }
-};
-
-// 📌 渲染 UV Heat Trend Chart
-const renderHeatTrendChart = async () => {
-  await nextTick();
-  if (heatTrendChart.value) {
-    if (chartInstanceHeatTrend.value) chartInstanceHeatTrend.value.destroy();
-    chartInstanceHeatTrend.value = new Chart(heatTrendChart.value.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: heatTrendData.value.map(d => d.year),
-        datasets: [{
-          label: "Median UV Index",
-          data: heatTrendData.value.map(d => d.median_uvi),
-          borderColor: '#FFA500',
-          backgroundColor: 'rgba(255, 165, 0, 0.2)',
-          fill: true
-        }]
-      }
-    });
-  }
-};
-// Skin Tone Colors
-const skinToneColors = ref(["#FAF0E6", "#F4C7A1", "#C08A60", "#8B5A2B", "#5D3A00"]);
-// 📌 计算防晒建议
-const clothingRecommendation = computed(() => uvIndex.value >= 7 ? "Wear long sleeves, pants, and a hat" : "Use light, breathable clothing");
-const sunProtectionRecommendation = computed(() => skinTone.value < 1.5 ? "Use SPF 50+" : skinTone.value > 2.5 ? "Use SPF 15+" : "Use SPF 30+");
-const sunExposureRecommendation = computed(() => uvIndex.value >= 8 ? "Avoid midday sun" : "Morning and evening are safer");
-
-// 📌 在页面加载时获取数据
-onMounted(() => {
-  fetchSkinCancerData();
-  fetchHeatTrendData();
 });
 </script>
 
 
 <style scoped>
+.highlight-text {
+  color: orange;
+  font-weight: bold;
+}
+
+.orange-button {
+  background: orange;  
+  color: white; 
+  border: none;
+  border-radius: 30px;
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.orange-button:hover {
+  background: darkorange;
+  transform: scale(1.05); 
+}
+
+.orange-button:active {
+  transform: scale(0.95);
+  background: #ff9800;
+}
+
+.uv-content {
+  position: relative;
+  margin-top: 80px;
+  z-index: 10;
+  text-align: center;
+  padding: 40px 30px 30px;
+  max-width: 600px;
+}
+
+.uv-container {
+  position: relative;
+  width: 100%;
+  min-height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  overflow: visible;
+  padding-bottom: 20px;
+}
+
+.uv-background {
+  position: absolute;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  background-color: #fdf3e6;
+  border-radius: 20px;
+  z-index: -1;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
+  border-radius: 5px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
 .search-container {
   position: relative;
   display: flex;
@@ -317,24 +497,27 @@ onMounted(() => {
 
 .search-button {
   margin-left: 10px;
+  background: orange;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.autocomplete-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: white;
-  border: 1px solid #ddd;
-  border-top: none;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  border-radius: 5px;
-  max-height: 200px;
-  overflow-y: auto;
+
+.search-button:hover {
+  background: darkorange;
+  transform: scale(1.05); 
+}
+
+
+.search-button:active {
+  transform: scale(0.95);
+  background: #ff9800;
 }
 
 .autocomplete-item {
@@ -371,60 +554,157 @@ onMounted(() => {
 .very-high { background-color: #FFCDD2; }
 .extreme { background-color: #E1BEE7; }
 
-.skin-tone-scale {
-  display: flex;
-  position: relative;
-  width: 100%;
-  height: 30px;
-  border-radius: 15px;
-  overflow: hidden; /* 让色卡完美衔接 */
-}
-
-/* 色板 */
-.skin-tone-block {
-  flex: 1;
-  height: 70px;  /* 让色卡足够大 */
-  border-radius: 0px;  /* 让色块完全连贯 */
-}
-
-/* 滑块 */
-.skin-tone-slider {
-  position: absolute;
-  width: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-/* 滑块轨道 */
-.skin-tone-slider::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 5px;
-  background: #ddd;
-  border-radius: 5px;
-}
-
-/* 滑块小圆点 */
-.skin-tone-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  background: orange;
-  border-radius: 50%;
-  margin-top: -6px; /* 让它居中 */
-}
-
-.skin-tone-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-  padding: 0 10px;
-  font-weight: bold;
-}
-/* ✅ 减少搜索框和结果的间距 */
 .alert-success {
   margin-top: 10px;
+}
+.skin-tone-container {
+  margin-bottom: 20px;
+}
+
+.skin-tone-scale-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+  max-width: 700px;
+  margin: auto;
+}
+.alert-info {
+  margin-top: 20px;
+}
+
+
+.skin-tone-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin: 5px auto 0;
+    font-weight: bold;
+}
+.recommendation-cards {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  width: 330px;
+  min-height: 420px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.recommendation-image {
+  width: 140px;
+  height: auto;
+  margin-bottom: 15px;
+}
+
+.recommendation-text {
+  font-size: 20px;
+  font-weight: 500;
+  margin-top: 15px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+
+@media (max-width: 1024px) {
+  .recommendation-cards {
+    max-width: 90%;
+  }
+  
+  .card {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .recommendation-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    width: 90%;
+    min-height: auto;
+  }
+}
+
+
+.skin-tone-slider {
+  width: 100%;
+  appearance: none;
+  height: 50px;
+  background: linear-gradient(to right, #FAF0E6, #F4C7A1, #8B5A2B);
+  border-radius: 5px;
+  outline: none;
+}
+
+
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  width: 180px;
+}
+
+
+.skin-tone-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 50px;
+  height: 50px;
+  background: orange;
+  border-radius: 50%;
+  margin-top: 0px;
+}
+
+.reminder-section {
+  margin-top: 20px;
+  text-align: left;
+  padding: 20px;
+  background-color: #fdf3e6;
+  border-radius: 10px;
+}
+
+.reminder-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+
+.reminder-row label {
+  width: 220px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.reminder-section select,
+.reminder-section input[type="number"] {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 16px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  margin-right: 10px;
+}
+.message {
+  font-size: 18px;
+  margin-top: 10px;
+  color: #333;
 }
 </style>

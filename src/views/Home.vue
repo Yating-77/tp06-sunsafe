@@ -1,357 +1,570 @@
 <template>
-  <div class="home-container">
-    <!-- 头部欢迎标语 -->
-    <div class="hero">
-      <div class="hero-overlay">
-        <h1>Understanding the UV Index: Protect Your Skin</h1>
-        <p>Ultraviolet rays can damage the skin—learn how to protect yourself effectively from the sun.</p>
+  <div class="page">
+    <!-- container 1-->
+    <div class="container container-1">
+  <div class="content">
+    <h1 class="uv-title">Understanding the UV Index: Protect Your Skin</h1>
+    <p class="uv-subtitle">
+      Ultraviolet rays can damage the skin—learn how to protect yourself effectively from the sun.
+    </p>
+  </div>
+</div>
+    <!--container 2-->
+    <div class="container container-2">
+      <h2 class="main-title">UV Radiation & Protection Guide</h2>
+
+      <div class="info-container">
+        <div class="info-box info-box-1">
+          <img src="/uvradiation_icon.png" alt="UV Radiation Icon" class="info-icon">
+          <h3>What is UV radiation?</h3>
+          <p>UV is a form of energy produced by the sun:</p>
+          <ul>
+            <li><span class="highlight-text">Visible light</span> – we see as sunlight.</li>
+            <li><span class="highlight-text">Infrared radiation</span> – we feel as heat.</li>
+            <li><span class="highlight-text">UV radiation</span> – we cannot see or feel.</li>
+          </ul>
+        </div>
+        
+        <div class="info-box info-box-2">
+          <img src="/uvindex_icon.png" alt="UV Index Icon" class="info-icon">
+          <h3>What is the UV Index?</h3>
+          <p>The UV Index helps measure UV exposure risk:</p>
+          <ul>
+            <li><span class="highlight-text">Low (1-2)</span> - Safe exposure</li>
+            <li><span class="highlight-text">Moderate (3-5)</span> - Caution needed</li>
+            <li><span class="highlight-text">High (6-7)</span> - Protection advised</li>
+            <li><span class="highlight-text">Very High (8-10)</span> - Dangerous levels</li>
+            <li><span class="highlight-text">Extreme (11+)</span> - Maximum risk</li>
+          </ul>
+        </div>
+
+        <div class="info-box info-box-3">
+          <img src="/tips_icon.png" alt="Sun Protection Icon" class="info-icon">
+          <h3>SunSmart Protection Tips</h3>
+          <ol>
+            <li>Slip on protective clothing.</li>
+            <li>Slop on SPF 50+ sunscreen.</li>
+            <li>Slap on a broad-brimmed hat.</li>
+            <li>Seek shade from 10 am to 4 pm.</li>
+            <li>Slide on UV-protection sunglasses.</li>
+          </ol>
+        </div>
       </div>
     </div>
 
-    <!-- UV 科普内容 -->
-    <div class="info-section">
-      <h2>What is UV radiation?</h2>
-      <p>
-        UV is a form of energy produced by the sun. The sun produces different types of energy:
-      </p>
-      <ul>
-        <li><strong>Visible light</strong> – which we can see as sunlight.</li>
-        <li><strong>Infrared radiation</strong> – which we feel as heat.</li>
-        <li><strong>UV radiation</strong> – which we cannot see or feel.</li>
+    <!-- container 3-->
+    <div class="container container-3">
+  <h2 class="main-title">Did you know?</h2>
+  
+  <div class="charts-wrapper">
+    <div class="chart-box">
+      <h4 class="chart-title">Heat Trend in Australia</h4>
+      <canvas ref="heatTrendChart"></canvas>
+      <ul class="chart-info">
+        <li>From 2018 to 2023, Australia's average temperature fluctuated.</li>
+        <li>Despite temperature changes, UV exposure risks remain stable.</li>
+        <li>
+          Source: 
+          <a href="https://data.gov.au/" 
+            target="_blank" 
+            rel="noopener noreferrer">
+            data.gov.au
+          </a>
+        </li>
       </ul>
-      <p>
-        UV radiation levels are influenced by location, altitude, time of year, and cloud cover.
-        Even on cool days, UV levels can be high, increasing the risk of skin damage.
-      </p>
     </div>
 
-    <div class="info-section">
-      <h2>What is the UV Index?</h2>
-      <p>The UV Index is a tool to help protect yourself from UV radiation. It classifies UV radiation levels into:</p>
-      <ul>
-        <li><strong>Low (1-2)</strong> - Safe exposure</li>
-        <li><strong>Moderate (3-5)</strong> - Caution needed</li>
-        <li><strong>High (6-7)</strong> - Protective measures advised</li>
-        <li><strong>Very High (8-10)</strong> - Dangerous UV levels</li>
-        <li><strong>Extreme (11+)</strong> - Maximum sun exposure risk</li>
+    <div class="chart-box">
+      <h4 class="chart-title">Skin Cancer Data</h4>
+      <canvas ref="skinCancerChart"></canvas>
+      <ul class="chart-info">
+        <li>Incidence rate of skin cancer is rising over the years.</li>
+        <li>Mortality rate has also shown an increasing trend.</li>
+        <li>
+          Sources: 
+          <a href="https://www.cancer.org.au/" target="_blank" rel="noopener noreferrer">Cancer Council Australia</a>, 
+          <a href="https://www.aihw.gov.au/" target="_blank" rel="noopener noreferrer">AIHW</a>, 
+          <a href="https://melanoma.org.au/" target="_blank" rel="noopener noreferrer">Melanoma Institute Australia</a>
+        </li>
       </ul>
-      <p>
-        The Australian Radiation Protection and Nuclear Safety Agency (ARPANSA) provides real-time UV Index data.
-        Check their website for the UV levels in your area today.
-      </p>
     </div>
+  </div>
+</div>
 
-    <!-- SunSmart 5 步防晒指南 -->
-    <div class="tips-section">
-      <h2>Follow the five SunSmart steps whenever the UV is 3 or above</h2>
-      <ol>
-        <li>Slip on protective clothing (long sleeves and pants for coverage).</li>
-        <li>Slop on SPF 50+ sunscreen and reapply every 2 hours.</li>
-        <li>Slap on a broad-brimmed hat to protect your face, neck, and ears.</li>
-        <li>Seek shade, especially from 10 am to 4 pm.</li>
-        <li>Slide on sunglasses that meet Australian standards.</li>
-      </ol>
-      <p>
-        Even on cloudy days, UV can be strong. Always check the UV Index and follow these steps whenever the level is 3 or higher.
-      </p>
-    </div>
 
-    <!-- 防晒霜补涂提醒设置 -->
-    <div class="reminder-section">
-      <h2>Sunscreen Reapplication Reminder Setting</h2>
-      <!-- SPF 下拉选择：常见 SPF 值 15、30、50 -->
-      <div class="reminder-row">
-        <label>Select Sunscreen SPF Value:</label>
-        <select v-model.number="spf">
-          <option :value="15">SPF 15</option>
-          <option :value="30">SPF 30</option>
-          <option :value="50">SPF 50</option>
-        </select>
-      </div>
-
-      <!-- 活动类型 -->
-      <div class="reminder-row">
-        <label>Select Activity Type:</label>
-        <select v-model="activity">
-          <option value="normal">General Outdoor Activities</option>
-          <option value="swimming">Swimming</option>
-          <option value="exercise">Sports</option>
-          <option value="high_uv">High UV Environment</option>
-        </select>
-      </div>
-
-      <!-- UV 指数 -->
-      <div class="reminder-row">
-        <label>Current UV Index:</label>
-        <input type="number" v-model.number="uvIndex" min="0" max="20" />
-      </div>
-
-      <!-- 计算按钮 -->
-      <div class="reminder-row">
-        <button @click="showReapplyTime">Calculate Reapplication Time</button>
-      </div>
-      <!-- 显示计算结果 -->
-      <div v-if="message" class="message">
-        {{ message }}
-      </div>
-
-      <!-- 自定义提醒时间 (分钟) -->
-      <div class="reminder-row">
-        <label>Custom Reminder Time (minutes):</label>
-        <input type="number" v-model.number="customReminder" min="1" />
-        <button @click="setCustomReminder">Set Reminder</button>
-      </div>
-      <!-- 显示已设置的提醒 -->
-      <div v-if="reminderSet" class="reminder-message">
-        Reminder Set! You will receive a notification to reapply sunscreen in {{ reminderTime }} minutes.
+    <!-- container 4-->
+    <div class="container container-4">
+      <div class="content">
+        <h2 class="title">Start to check UV today</h2>
+        <button class="check-btn" @click="goToInform">Check Now</button>
       </div>
     </div>
-
-    <!-- Footer -->
-    <Footer />
   </div>
 </template>
 
-<script>
-import Footer from "@/components/Footer.vue";
+<script setup>
+import { ref, onMounted, nextTick } from "vue";
+import Chart from "chart.js/auto";
+import { useRouter } from "vue-router";
 
-export default {
-  components: {
-    Footer,
-  },
-  data() {
-    return {
-      spf: 30,             // 默认 SPF 值
-      activity: "normal",  // 默认活动类型
-      uvIndex: 6,          // 默认 UV 指数
-      message: "",         // 计算结果
-      customReminder: 0,   // 用户自定义提醒时间(分钟)
-      reminderSet: false,  // 是否已设置提醒
-      reminderTime: 0,     // 提醒时间(分钟)
-      reminderTimer: null, // 存储 setTimeout 句柄
-    };
-  },
-  methods: {
-    // 计算补涂时间(小时)
-    calculateReapplyTime() {
-      // SPF x 10 (分钟) 作为基础
-      let baseTime = this.spf * 10; // 单位：分钟
+const router = useRouter();
 
-      // 如果活动为游泳或运动，则时间减半
-      if (this.activity === "swimming" || this.activity === "exercise") {
-        baseTime /= 2;
-      }
+const AWS_API_URL = "https://sunsafe.mooo.com"; 
 
-      // 如果 UV 指数 >= 8，则减少 25%
-      if (this.uvIndex >= 8) {
-        baseTime *= 0.75;
-      }
+const heatTrendChart = ref(null);
+const skinCancerChart = ref(null);
+const chartInstanceHeatTrend = ref(null);
+const chartInstanceSkinCancer = ref(null);
 
-      // 转换为小时，并四舍五入
-      let hours = Math.round(baseTime / 60);
-      return hours;
-    },
+const heatTrendData = ref([]);
+const skinCancerData = ref([]);
 
-    // 显示补涂时间
-    showReapplyTime() {
-      let hours = this.calculateReapplyTime();
-      this.message = `It is recommended to reapply sunscreen in ${hours} hours.`;
-    },
-
-    // 设置自定义提醒(分钟) 使用 alert 弹窗提醒
-    setCustomReminder() {
-      // 如果存在旧的定时器，先清除
-      if (this.reminderTimer) {
-        clearTimeout(this.reminderTimer);
-      }
-
-      if (this.customReminder > 0) {
-        this.reminderTime = this.customReminder;
-        this.reminderSet = true;
-
-        // 使用 setTimeout 在指定时间后调用 alert 弹窗提醒
-        this.reminderTimer = setTimeout(() => {
-          alert(`Reminder: Your set time of ${this.reminderTime} minutes is up. Please remember to reapply sunscreen.。`);
-          // 提醒后重置提醒状态
-          this.reminderSet = false;
-        }, this.reminderTime * 60 * 1000);
-      } else {
-        this.reminderSet = false;
-        alert("Please enter a valid reminder time (minutes)!");
-      }
-    },
-  },
-  beforeDestroy() {
-    // 若组件被卸载，清除定时器
-    if (this.reminderTimer) {
-      clearTimeout(this.reminderTimer);
-    }
-  },
+const fetchHeatTrendData = async () => {
+  try {
+    const response = await fetch(`${AWS_API_URL}/uvhistory`);
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const data = await response.json();
+    heatTrendData.value = data;
+  } catch (error) {
+    console.error("Error fetching UV history:", error);
+  }
 };
+
+const fetchSkinCancerData = async () => {
+  try {
+    const response = await fetch(`${AWS_API_URL}/skincancerdata`);
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const data = await response.json();
+    skinCancerData.value = data;
+  } catch (error) {
+    console.error("Error fetching skin cancer data:", error);
+  }
+};
+
+const goToInform = () => {
+  router.push('/inform');
+};
+
+onMounted(async () => {
+  await fetchHeatTrendData();
+  await fetchSkinCancerData();
+  await nextTick();
+  renderCharts();
+});
+
+const renderCharts = () => {
+  if (!heatTrendChart.value || !skinCancerChart.value) {
+    console.warn("❌ canvas 元素未找到！");
+    return;
+  }
+
+  if (chartInstanceHeatTrend.value) chartInstanceHeatTrend.value.destroy();
+  if (chartInstanceSkinCancer.value) chartInstanceSkinCancer.value.destroy();
+
+  chartInstanceHeatTrend.value = new Chart(heatTrendChart.value.getContext("2d"), {
+    type: "line",
+    data: {
+      labels: heatTrendData.value.map((item) => item.year),
+      datasets: [
+        {
+          label: "Median UV Index",
+          data: heatTrendData.value.map((item) => item.median_uvi),
+          borderColor: "#FFA500",
+          backgroundColor: "rgba(255, 165, 0, 0.2)",
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Year",
+            font: {
+              size: 14,
+              weight: "bold",
+            },
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: "UV Index",
+            font: {
+              size: 14,
+              weight: "bold",
+            },
+          },
+        },
+      },
+    },
+  });
+
+  chartInstanceSkinCancer.value = new Chart(skinCancerChart.value.getContext("2d"), {
+    type: "line",
+    data: {
+      labels: skinCancerData.value.map((item) => item.year),
+      datasets: [
+        {
+          label: "Incidence Rate",
+          data: skinCancerData.value.map((item) => item.incidence_rate),
+          borderColor: "#FF5733",
+          backgroundColor: "rgba(255, 87, 51, 0.2)",
+          fill: true,
+        },
+        {
+          label: "Mortality Rate",
+          data: skinCancerData.value.map((item) => item.mortality_rate),
+          borderColor: "#1E90FF",
+          backgroundColor: "rgba(30, 144, 255, 0.2)",
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Year",
+            font: {
+              size: 14,
+              weight: "bold",
+            },
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: "Rate (per 100,000 population)",
+            font: {
+              size: 14,
+              weight: "bold",
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
 </script>
 
 <style scoped>
-/* 整个首页布局 */
-.home-container {
-  text-align: center;
-  padding: 20px;
+.highlight-text {
+  color: darkorange;
+  font-weight: bold;
+}
+.info-icon {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 10px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* 头部 hero，背景填充 */
-.hero {
-  width: 100%;
-  height: 400px;
-  background-image: url('/pic4.jpg'); 
-  background-size: cover;
-  background-position: center;
+.charts-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.chart-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 45%;
+  min-width: 350px;
+  text-align: center;
+  max-width: 500px;
+}
+
+canvas {
+  max-width: 100%;
+  max-height: 400px;
+}
+
+.chart-info {
+  text-align: left;
+  margin-top: 10px;
+  padding-left: 20px;
+  color: black !important;
+}
+
+.chart-info li {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.container {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  border-radius: 10px;
+  font-size: 15px;
+  color: white;
+  font-weight: bold;
+  width: 100%;
 }
 
-.hero-overlay {
+.container-1 {
+  background-image: url("/pic4.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 80vh;
+}
+
+
+.uv-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
   text-align: center;
+  max-width: 80%;
+  margin-bottom: 10px;
 }
 
-.hero-overlay h1 {
-  font-size: 72px;
-  font-weight: bold;
-  margin-bottom: 15px;
+.uv-subtitle {
+  font-size: 24px;
   color: white;
+  text-align: center;
+  max-width: 70%;
+  font-weight: 300;
 }
 
-.hero-overlay p {
-  font-size: 32px;
-  font-weight: 500;
-  color: white;
-}
-
-/* 科普内容 */
-.info-section {
-  margin-top: 30px;
-  text-align: left;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-.info-section h2 {
-  color: #d18463;
-}
-
-.info-section ul,
-.info-section ol {
-  padding-left: 20px;
-}
-
-.info-section li {
-  font-size: 16px;
-  margin-bottom: 8px;
-}
-
-/* 防晒指南 */
-.tips-section {
-  margin-top: 30px;
-  text-align: left;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-.tips-section h2 {
-  color: #d18463;
-}
-
-.tips-section ol {
-  padding-left: 20px;
-}
-
-.tips-section li {
-  font-size: 16px;
-  margin-bottom: 8px;
-}
-
-/* 防晒霜提醒设置 */
-.reminder-section {
-  margin-top: 30px;
-  text-align: left;
-  padding: 20px;
-  background-color: #eef;
-  border-radius: 10px;
-  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* 每一行的布局 */
-.reminder-row {
-  display: flex;
+.container-2 {
+  background-color: #fdf3e6;
+  height: auto;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 15px;
+  justify-content: flex-start;
+  padding: 20px;
+  height: 60vh;
 }
 
-/* 让 label 和输入框/下拉框分开一些 */
-.reminder-row label {
-  width: 220px;
+.main-title {
+  font-size: 36px;
   font-weight: bold;
-  margin-right: 10px;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 15px;
+  color: #FFA500;
 }
 
-/* 输入框和下拉框的样式 */
-.reminder-section select,
-.reminder-section input[type="number"] {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 8px 12px;
-  font-size: 16px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  margin-right: 10px;
+.info-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1200px;
+  padding: 10px;
 }
 
-/* 获得焦点时的高亮 */
-.reminder-section select:focus,
-.reminder-section input[type="number"]:focus {
-  outline: none;
-  border-color: #d18463;
-  box-shadow: 0 0 5px rgba(209, 132, 99, 0.5);
+.info-box {
+  flex: 1;
+  min-height: auto;
+  max-height: none;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  color: black;
+  margin: 0 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  word-wrap: break-word;
 }
 
-/* 让按钮更生动 */
-.reminder-section button {
-  background-color: #d18463;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-right: 10px; /* 使多个按钮间有间隔 */
-  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.reminder-section button:hover {
-  background-color: #b36a49;
-  transform: scale(1.05);
-}
-
-.reminder-section button:active {
-  transform: scale(0.95);
-  box-shadow: none;
-}
-
-.message {
+.info-box h3 {
   font-size: 18px;
-  margin-top: 10px;
-  color: #333;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 10px;
+  font-weight: bold;
 }
 
-.reminder-message {
+.info-box ul, .info-box ol {
+  margin-left: 5px;
+}
+
+.info-box ul li, .info-box ol li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.container-3 {
+  background-color: white;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: black
+}
+
+.charts-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 20px;
+}
+
+.chart-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 45%;
+  min-width: 350px;
+  text-align: center;
+  min-height: 450px;
+}
+
+@media (max-width: 768px) {
+  .charts-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chart-box {
+    width: 100%;
+    max-width: 500px;
+  }
+}
+
+.container-4 {
+  background-image: url("/pic3.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 60vh;
+}
+
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px 20px;
+  border-radius: 20px;
+}
+
+
+.input-box {
+  width: 300px;
+  height: 40px;
+  padding: 10px;
+  border: 2px solid white;
+  border-radius: 10px;
   font-size: 16px;
-  color: #d18463;
-  margin-top: 10px;
+  text-align: center;
+  outline: none;
+}
+
+@media (max-width: 1024px) {
+  .info-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .info-box {
+    width: 90%;
+    margin-bottom: 20px;
+  }
+}
+
+.info-box-2 p {
+  display: inline;
+  margin-right: 5px;
+  white-space: nowrap;
+}
+
+.info-box-2 ul {
+  display: inline-block;
+  vertical-align: top;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  width: 100%;
+}
+.container-4 {
+  background-image: url("/pic3.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  background: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+}
+
+.check-btn {
+  background-color: white;
+  color: orange;
+  font-size: 22px;
+  font-weight: bold;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 20px;
+}
+
+.check-btn:hover {
+  background-color: orange;
+  color: white;
 }
 </style>

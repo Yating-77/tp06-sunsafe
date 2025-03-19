@@ -1,84 +1,91 @@
 <template>
-    <div class="sidebar">
-      <!-- 添加 Logo -->
-      <div class="logo-container">
+  <div class="navbar">
+    <div class="logo-container">
+      <router-link to="/">
         <img src="/pic1.jpg" alt="Logo" class="logo">
-      </div>
-  
-      <!-- 导航菜单 -->
-      <router-link to="/" class="nav-item">
+      </router-link>
+    </div>
+    <div class="nav-links">
+      <router-link to="/" class="nav-item" active-class="active-link">
         <i class="bi bi-house-door"></i> HOME
       </router-link>
-      <router-link to="/inform" class="nav-item">
-        <i class="bi bi-info-circle"></i> INFORM
+      <router-link to="/inform" class="nav-item" active-class="active-link">
+        <i class="bi bi-info-circle"></i> Check UV
       </router-link>
-  
-      <!-- 分隔线 -->
-      <div class="divider"></div>
-  
-      <!-- 额外的静态信息 -->
-      <div class="nav-item static">CONTACT US</div>
-      <div class="nav-item static">SUPPORT</div>
     </div>
-  </template>
-  
-  <style scoped>
-  /* 侧边栏整体样式 */
-  .sidebar {
-    width: 200px;
-    height: 100vh;
-    background-color: #e49b72;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0;
-    position: fixed;
-    left: 0;
-    top: 0;
-  }
-  
-  /* Logo 容器 */
-  .logo-container {
-    width: 100%;
-    height: auto;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: white;
-  }
-  
-  /* Logo 图片 */
-  .logo {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-  }
-  
-  /* 导航按钮样式 */
-  .nav-item {
-    color: white;
-    text-decoration: none;
-    font-size: 18px;
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    justify-content: center;
-    font-weight: bold;
-  }
-  
-  /* 鼠标悬停 */
-  .nav-item:hover {
-    background-color: #d18b63;
-  }
-  
-  /* Bootstrap 图标 */
-  i {
-    font-size: 20px;
-  }
+  </div>
+</template>
 
+<style scoped>
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+}
 
-  </style>
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav-item {
+  color: black; 
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 45px;
+  text-align: center;
+}
+
+.active-link {
+  color: white !important;
+  background: orange !important;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(255, 165, 0, 0.3);
+}
+
+.nav-item:hover {
+  background: orange;
+  transform: scale(1.05); 
+  color: white;
+  border-radius: 8px;
+  transition: 0.3s ease;
+}
+
+.nav-item:active {
+  transform: scale(0.95);
+  background: orange;
+}
+
+i {
+  font-size: 18px;
+  margin-left: 0;
+  padding-left: 0;
+}
+</style>

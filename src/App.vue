@@ -1,26 +1,38 @@
 <script setup>
 import Sidebar from './components/Sidebar.vue';
+import Footer from './components/Footer.vue';
 </script>
 
 <template>
   <div class="app-container">
     <Sidebar />
-    <div class="content">
+    <div class="main-content">
       <router-view></router-view>
     </div>
+    <Footer />
   </div>
 </template>
 
 <style scoped>
-/* 主容器，确保侧边栏和内容布局正确 */
 .app-container {
   display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-/* 页面内容 */
-.content {
-  margin-left: 200px; /* 让内容右移，避免被侧边栏覆盖 */
-  padding: 20px;
-  flex-grow: 1;
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.footer {
+  background-color: orange;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  width: 100%;
+  position: relative;
 }
 </style>
